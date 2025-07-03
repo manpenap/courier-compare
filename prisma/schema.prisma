@@ -1,0 +1,29 @@
+// Esquema inicial para usuarios y consultas de cotización
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  quotes    Quote[]
+}
+
+model Quote {
+  id          Int      @id @default(autoincrement())
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      Int?
+  origin      String
+  destination String
+  weight      Float
+  price       Float
+  courier     String
+  createdAt   DateTime @default(now())
+}
