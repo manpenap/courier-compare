@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import QuoteForm from "../components/QuoteForm";
 import { useState } from "react";

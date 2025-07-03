@@ -2,6 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState } from "react";
 
 const QuoteSchema = z.object({
   origin: z.string().min(2, "Requerido"),
@@ -19,18 +20,31 @@ export default function QuoteForm({ onResult }: { onResult: (data: any) => void 
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    reset,
   } = useForm<QuoteFormData>({
     resolver: zodResolver(QuoteSchema),
   });
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const onSubmit = async (data: QuoteFormData) => {
-    const res = await fetch("/api/quote", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const result = await res.json();
-    onResult(result);
+    setApiError(null);
+    try {
+      const res = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setApiError(result.error || "Error al consultar la API");
+        onResult(null);
+        return;
+      }
+      onResult(result);
+    } catch (err) {
+      setApiError("Error de red o servidor. Intenta nuevamente.");
+      onResult(null);
+    }
   };
 
   return (
@@ -44,6 +58,7 @@ export default function QuoteForm({ onResult }: { onResult: (data: any) => void 
       <input {...register("length")} placeholder="Largo (cm)" type="number" className="input" />
       <input {...register("width")} placeholder="Ancho (cm)" type="number" className="input" />
       <input {...register("height")} placeholder="Alto (cm)" type="number" className="input" />
+      {apiError && <div className="text-red-600 font-semibold">{apiError}</div>}
       <button type="submit" className="btn" disabled={isSubmitting}>
         {isSubmitting ? "Consultando..." : "Comparar"}
       </button>
